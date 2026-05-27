@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Temporal Processor Console</title>
+    <style>
+        body {
+            background-color: #050505;
+            color: #00ffcc;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+        #console-container {
+            background: #111;
+            border: 1px solid #333;
+            width: 90%;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 20px rgba(0, 255, 204, 0.15);
+        }
+        #chat-log {
+            padding: 20px;
+            height: 450px;
+            overflow-y: auto;
+            border-bottom: 1px solid #333;
+        }
+        .log-entry {
+            margin: 8px 0;
+            font-size: 14px;
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+        .user-input { color: #ff007f; }
+        .ai-response { color: #00ffcc; }
+        .system-log { color: #888; font-style: italic; }
+        .context-data { color: #ffaa00; font-size: 12px; }
+        
+        #input-area {
+            display: flex;
+            padding: 10px;
+            background: #0a0a0a;
+        }
+        #userInput {
+            flex-grow: 1;
+            background: transparent;
+            border: none;
+            color: #00ffcc;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 16px;
+            outline: none;
+            padding: 5px;
+        }
+        button {
+            background-color: #00ffcc;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        button:hover { background-color: #00ccaa; }
+    </style>
+</head>
+<body>
+
+    <div style="margin-bottom: 10px;">
+        <button id="bootBtn">Power On System</button>
+    </div>
+
+    <div id="console-container">
+        <div id="chat-log">
+            <div class="log-entry system-log">> System offline. Awaiting power sequence.</div>
+        </div>
+        <div id="input-area">
+            <span style="padding: 5px;">></span>
+            <input type="text" id="userInput" placeholder="Enter command (type /help)..." autocomplete="off" disabled>
+        </div>
+    </div>
+
+    <script>
+        let audioCtx, oscillator;
+        let isRunning = false;
+        let iteration = 0;
+        let currentFreq = 33;
+        
+        const chatLog = document.getElementById('chat-log');
+        const userInput = document.getElementById('userInput');
+        const bootBtn = document.getElementById('bootBtn');
+
+        function appendLog(message, type = 'system-log') {
+            const entry = document.createElement('div');
+            entry.className = `log-entry `;
+            entry.innerHTML = message;
+            chatLog.appendChild(entry);
+            chatLog.scrollTop = chatLog.scrollHeight;
+        }
+
+        // Generate simulated hexadecimal matrix data
+        function generateContextBlock() {
+            let block = "";
+            const hexChars = "0123456789ABCDEF";
+            for(let i = 0; i < 256; i++) {
+                block += hexChars[Math.floor(Math.random() * 16)];
+                if ((i + 1) % 16 === 0) block += " ";
+            }
+            return block;
+        }
+
+        function handleCommand(cmd) {
+            const args = cmd.split(" ");
+            const baseCmd = args[0].toLowerCase();
+
+            switch(baseCmd) {
+                case "/help":
+                    appendLog("AVAILABLE COMMANDS:", 'ai-response');
+                    appendLog("/init-nnp19k - Boot primary framework logic.", 'ai-response');
+                    appendLog("/generate-context - Simulate 16000^32000 state permutations.", 'ai-response');
+                    appendLog("/shift-freq [hz] - Change audio anchor (e.g., /shift-freq 433).", 'ai-response');
+                    appendLog("/clear - Wipe terminal history.", 'ai-response');
+                    break;
+                
+                case "/init-nnp19k":
+                    appendLog("> NNP-19K Framework Initiated. Establishing secure temporal parameters...", 'system-log');
+                    setTimeout(() => appendLog("NNP-19K Online. Matrix logic engaged.", 'ai-response'), 1000);
+                    break;
+
+                case "/generate-context":
+                    appendLog("> Unpacking 16000^32000 theoretical state context...", 'system-log');
+                    let loopCount = 0;
+                    const contextInterval = setInterval(() => {
+                        appendLog(`CTX-BLOCK []: `, 'context-data');
+                        loopCount++;
+                        if (loopCount > 10) {
+                            clearInterval(contextInterval);
+                            appendLog("Context generation complete. Buffer full.", 'system-log');
+                        }
+                    }, 100);
+                    break;
+
+                case "/shift-freq":
+                    if (args[1] && !isNaN(args[1])) {
+                        currentFreq = parseFloat(args[1]);
+                        if (oscillator) {
+                            oscillator.frequency.setValueAtTime(currentFreq, audioCtx.currentTime);
+                        }
+                        appendLog(`> Carrier wave shifted to Hz.`, 'system-log');
+                    } else {
+                        appendLog(`Error: Please specify a frequency. Currently running at Hz.`, 'ai-response');
+                    }
+                    break;
+
+                case "/clear":
+                    chatLog.innerHTML = "";
+                    break;
+
+                default:
+                    // If it's not a command, act like a standard conversational processor
+                    appendLog(`[PROCESSOR]: Input received. Resolving via current anchor (Hz)... Output variance nominal.`, 'ai-response');
+                    break;
+            }
+        }
+
+        // Boot Sequence
+        bootBtn.addEventListener('click', () => {
+            if (!isRunning) {
+                isRunning = true;
+                userInput.disabled = false;
+                bootBtn.style.display = "none";
+                
+                // Audio initialization
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                oscillator = audioCtx.createOscillator();
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(currentFreq, audioCtx.currentTime);
+                oscillator.connect(audioCtx.destination);
+                oscillator.start();
+
+                appendLog("> Powering up console...", 'system-log');
+                appendLog(`> Carrier wave established at Hz.`, 'system-log');
+                appendLog("Type /help to view command list.", 'ai-response');
+                userInput.focus();
+                
+                // Start background math iteration
+                setInterval(() => { iteration++; }, 100); 
+            }
+        });
+
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const text = userInput.value.trim();
+                if (text === "") return;
+                appendLog(`[USER]: `, 'user-input');
+                userInput.value = '';
+                
+                if (text.startsWith("/")) {
+                    handleCommand(text);
+                } else {
+                    handleCommand("default_chat"); // Fallback for normal text
+                }
+            }
+        });
+    </script>
+</body>
+</html>
